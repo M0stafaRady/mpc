@@ -1,20 +1,21 @@
 from cocotb_includes import *
 import random
+
+SELECTED_PROG = 0
 @cocotb.test()
 @repot_test
 async def counter_wb(dut):
-    caravelEnv = await test_configure(dut,timeout_cycles=3346140)
+    caravelEnv = await test_configure(dut,timeout_cycles=3346140,call_function=initial_project)
 
     cocotb.log.info(f"[TEST] Start counter_wb test")  
     # wait for start of sending
     await caravelEnv.release_csb()
-    selected_projeted = random.randint(0,3)
-    counter_step = selected_projeted*2+1
-    cocotb.log.info(f"[TEST] seleceted project = {selected_projeted}")  
-    caravelEnv.drive_gpio_in((37, 36), selected_projeted)
+    
     await caravelEnv.wait_mgmt_gpio(1)
     await caravelEnv.release_csb()
     cocotb.log.info(f"[TEST] finish configuration") 
+    selected_projeted = SELECTED_PROG
+    counter_step = selected_projeted*2+1
     cocotb.log.info(f"[TEST] project {selected_projeted} selected, counter step = {counter_step}") 
     overwrite_val = 7 # value will be written to the counter by wishbone 
     # expect value bigger than 7 
@@ -50,3 +51,11 @@ async def counter_wb(dut):
 
         await cocotb.triggers.ClockCycles(caravelEnv.clk,1)
         counter +=counter_step
+
+
+def initial_project(caravelEnv): 
+    selected_projeted = random.randint(0,3)
+    cocotb.log.info(f"[TEST] seleceted project = {selected_projeted}")  
+    caravelEnv.drive_gpio_in((37, 36), selected_projeted)
+    global SELECTED_PROG
+    SELECTED_PROG = selected_projeted

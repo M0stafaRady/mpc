@@ -1,17 +1,18 @@
 from cocotb_includes import *
 import random 
+
+SELECTED_PROG = 0
 @cocotb.test()
 @repot_test
 async def counter_la_clk(dut):
-    caravelEnv = await test_configure(dut,timeout_cycles=1346140)
+    caravelEnv = await test_configure(dut,timeout_cycles=3346140,call_function=initial_project)
 
     cocotb.log.info(f"[TEST] Start counter_la_clk test")  
     # wait for start of sending
     await caravelEnv.release_csb()
-    selected_projeted = random.randint(0,3)
+    selected_projeted = SELECTED_PROG
     counter_step = selected_projeted*2+1
     cocotb.log.info(f"[TEST] seleceted project = {selected_projeted}")  
-    caravelEnv.drive_gpio_in((37, 36), selected_projeted)
     await caravelEnv.wait_mgmt_gpio(1)
     await caravelEnv.release_csb()
     cocotb.log.info(f"[TEST] finish configuration") 
@@ -31,3 +32,11 @@ async def wait_la_clock_cycle(caravelEnv):
     # clock is synced with mgmt_gpio
     await caravelEnv.wait_mgmt_gpio(0)
     await caravelEnv.wait_mgmt_gpio(1)
+
+
+def initial_project(caravelEnv): 
+    selected_projeted = random.randint(0,3)
+    cocotb.log.info(f"[TEST] seleceted project = {selected_projeted}")  
+    caravelEnv.drive_gpio_in((37, 36), selected_projeted)
+    global SELECTED_PROG
+    SELECTED_PROG = selected_projeted
